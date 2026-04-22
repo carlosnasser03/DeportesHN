@@ -1,0 +1,164 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelos principales siguiendo SOLID principles
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String   @unique  // Real Madrid, Barcelona, etc
+  logo      String?           // Logo único compartido en todas categorías
+  color     String?
+  town      String?           // Pueblo/ciudad origen
+
+  // Un team por categoría es una instancia de esta organización
+  teams     Team[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([town])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique // U7, U9, U11, U13, U15, U17
+  label     String   // Sub-7, Sub-9, etc
+  color     String   // Color en hex
+  ageRange  String   // 5-7 años, etc
+  maxTeams  Int      @default(30)
+
+  teams     Team[]
+  matches   Match[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Team {
+  id              String   @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  coach           String?  // Coach específico para esta categoría
+
+  // Relaciones
+  players         Player[]       // Jugadores de este team
+  homeMatches     Match[] @relation("homeTeam")
+  awayMatches     Match[] @relation("awayTeam")
+  favoritedBy     User[]  @relation("favoriteTeams")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, categoryId]) // Un team por org+categoría
+  @@index([organizationId])
+  @@index([categoryId])
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  name      String   // Nombre único por equipo+categoría
+  dorsal    Int      // Número de camiseta
+  posicion  String?  // Delantero, Mediocampista, Defensa, Portero
+  edad      Int?
+  photoUrl  String?  // URL foto del jugador (Cloudinary) - null por ahora
+
+  // Estadísticas
+  stats     PlayerStat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, dorsal]) // Un jugador por dorsal en cada team
+  @@unique([teamId, name])   // Un jugador por nombre en cada team
+  @@index([teamId])
+}
+
+model PlayerStat {
+  id        String   @id @default(cuid())
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  // Estadísticas del jugador en este partido
+  goalsScored     Int  @default(0)
+  assists         Int  @default(0)
+  yellowCards     Int  @default(0)
+  redCards        Int  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([playerId, matchId]) // Una stat por jugador+partido
+  @@index([playerId])
+  @@index([matchId])
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  homeTeamId  String
+  homeTeam    Team        @relation("homeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
+
+  awayTeamId  String
+  awayTeam    Team        @relation("awayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
+
+  date        DateTime    // Fecha y hora del partido
+  location    String      // Lugar del partido
+
+  status      String      @default("scheduled") // scheduled, live, finished, cancelled
+  homeScore   Int?        // Goles equipo local
+  awayScore   Int?        // Goles equipo visitante
+
+  // Estadísticas de jugadores
+  playerStats PlayerStat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([date])
+  @@index([status])
+}
+
+model User {
+  id              String   @id @default(cuid())
+
+  // Favoritos
+  favoriteTeams   Team[]   @relation("favoriteTeams")
+
+  // Preferencias
+  notificationsEnabled Boolean @default(true)
+  theme           String   @default("light") // light, dark
+  language        String   @default("es")    // es, en
+
+  // Firebase token para notificaciones push
+  fcmTokens       String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
