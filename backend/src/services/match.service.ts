@@ -256,6 +256,83 @@ export class MatchService {
   }
 
   /**
+   * Actualizar estadísticas de jugador en un partido
+   */
+  async updatePlayerStats(matchId: string, data: {
+    playerId: string;
+    goalsScored?: number;
+    assists?: number;
+    yellowCards?: number;
+    redCards?: number;
+  }) {
+    try {
+      // Verificar que el partido existe
+      const match = await prisma.match.findUnique({
+        where: { id: matchId },
+      });
+
+      if (!match) {
+        throw new Error(`Partido no encontrado: ${matchId}`);
+      }
+
+      // Verificar que el jugador existe
+      const player = await prisma.player.findUnique({
+        where: { id: data.playerId },
+      });
+
+      if (!player) {
+        throw new Error(`Jugador no encontrado: ${data.playerId}`);
+      }
+
+      // Buscar si ya existe stat para este jugador+partido
+      const existingStat = await prisma.playerStat.findUnique({
+        where: {
+          playerId_matchId: {
+            playerId: data.playerId,
+            matchId: matchId,
+          },
+        },
+      });
+
+      let stat;
+
+      if (existingStat) {
+        // Actualizar stat existente
+        stat = await prisma.playerStat.update({
+          where: { id: existingStat.id },
+          data: {
+            goalsScored: data.goalsScored !== undefined ? data.goalsScored : existingStat.goalsScored,
+            assists: data.assists !== undefined ? data.assists : existingStat.assists,
+            yellowCards: data.yellowCards !== undefined ? data.yellowCards : existingStat.yellowCards,
+            redCards: data.redCards !== undefined ? data.redCards : existingStat.redCards,
+          },
+        });
+      } else {
+        // Crear nueva stat
+        stat = await prisma.playerStat.create({
+          data: {
+            playerId: data.playerId,
+            matchId: matchId,
+            goalsScored: data.goalsScored || 0,
+            assists: data.assists || 0,
+            yellowCards: data.yellowCards || 0,
+            redCards: data.redCards || 0,
+          },
+          include: {
+            player: true,
+            match: true,
+          },
+        });
+      }
+
+      return stat;
+    } catch (error) {
+      console.error('Error en updatePlayerStats:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Eliminar partido
    */
   async deleteMatch(id: string) {

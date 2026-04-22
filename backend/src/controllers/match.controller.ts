@@ -157,6 +157,44 @@ export class MatchController {
   }
 
   /**
+   * POST /api/matches/:matchId/stats
+   * Registrar o actualizar estadísticas de un jugador en un partido
+   */
+  async updateStats(req: Request, res: Response) {
+    try {
+      const { matchId } = req.params;
+      const { playerId, goalsScored, assists, yellowCards, redCards } = req.body;
+
+      if (!playerId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Se requiere playerId',
+        });
+      }
+
+      const stat = await matchService.updatePlayerStats(matchId, {
+        playerId,
+        goalsScored,
+        assists,
+        yellowCards,
+        redCards,
+      });
+
+      res.json({
+        success: true,
+        data: stat,
+      });
+    } catch (error) {
+      console.error('Error en updateStats:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Error al actualizar estadísticas',
+        message: (error as Error).message,
+      });
+    }
+  }
+
+  /**
    * DELETE /api/matches/:id
    */
   async delete(req: Request, res: Response) {
