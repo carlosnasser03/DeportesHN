@@ -39,6 +39,7 @@ model Category {
 
   teams     Team[]
   matches   Match[]
+  comments  Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,6 +135,7 @@ model Match {
 
   // Estadísticas de jugadores
   playerStats PlayerStat[]
+  comments    Comment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -161,4 +163,23 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  matchId     String?  // Opcional: comentario puede ser solo de categoría o de un partido específico
+  match       Match?   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  content     String   // Contenido del comentario (filtrado de malas palabras)
+  isApproved  Boolean  @default(true) // Para futuro: moderación manual si es necesario
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([matchId])
+  @@index([createdAt])
 }

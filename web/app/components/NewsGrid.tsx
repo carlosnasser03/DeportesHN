@@ -18,7 +18,7 @@ interface Match {
   status: string;
   date: string;
   location: string;
-  category: { label: string };
+  category: { id: string; label: string };
 }
 
 export function NewsGrid() {

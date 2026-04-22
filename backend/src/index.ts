@@ -43,12 +43,14 @@ import teamsRouter from '@/routes/teams';
 import matchesRouter from '@/routes/matches';
 import usersRouter from '@/routes/users';
 import standingsRouter from '@/routes/standings';
+import commentsRouter from '@/routes/comments';
 
 app.use('/api/categories', categoriesRouter);
 app.use('/api/teams', teamsRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/standings', standingsRouter);
+app.use('/api/comments', commentsRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

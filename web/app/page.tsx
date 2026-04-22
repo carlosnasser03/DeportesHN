@@ -6,6 +6,7 @@ import { Hero } from "./components/Hero";
 import { NewsGrid } from "./components/NewsGrid";
 import { StandingsWidget } from "./components/StandingsWidget";
 import { UpcomingMatches } from "./components/UpcomingMatches";
+import { RecentComments } from "./components/RecentComments";
 import { matchesAPI, categoriesAPI } from "@/lib/api";
 import { useAnalytics } from "./hooks/useAnalytics";
 
@@ -87,6 +88,9 @@ export default function Home() {
 
             {/* Tabla de posiciones */}
             {selectedCategory && <StandingsWidget categoryId={selectedCategory} />}
+
+            {/* Comentarios recientes */}
+            <RecentComments />
           </div>
         </div>
 

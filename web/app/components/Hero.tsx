@@ -17,7 +17,7 @@ interface Match {
   awayScore?: number;
   status: string;
   date: string;
-  category: { label: string };
+  category: { id: string; label: string };
 }
 
 interface HeroProps {

@@ -54,4 +54,21 @@ export const standingsAPI = {
     api.get(`/standings/${categoryId}/scorers`),
 };
 
+// Comments
+export const commentsAPI = {
+  getByCategory: (categoryId: string, page = 1, limit = 20) =>
+    api.get(`/comments/category/${categoryId}?page=${page}&limit=${limit}`),
+  getByMatch: (matchId: string, page = 1, limit = 20) =>
+    api.get(`/comments/match/${matchId}?page=${page}&limit=${limit}`),
+  create: (categoryId: string, content: string, matchId?: string) =>
+    api.post("/comments", {
+      categoryId,
+      content,
+      ...(matchId && { matchId }),
+    }),
+  delete: (commentId: string) => api.delete(`/comments/${commentId}`),
+  getStats: (categoryId?: string) =>
+    api.get(`/comments/stats${categoryId ? `?categoryId=${categoryId}` : ""}`),
+};
+
 export default api;
