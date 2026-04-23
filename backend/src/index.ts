@@ -61,6 +61,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // API Routes
+import authRouter from '@/routes/auth';
 import categoriesRouter from '@/routes/categories';
 import teamsRouter from '@/routes/teams';
 import matchesRouter from '@/routes/matches';
@@ -68,6 +69,7 @@ import usersRouter from '@/routes/users';
 import standingsRouter from '@/routes/standings';
 import commentsRouter from '@/routes/comments';
 
+app.use('/api/auth', authRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/teams', teamsRouter);
 app.use('/api/matches', matchesRouter);
