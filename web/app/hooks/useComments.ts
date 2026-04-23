@@ -189,3 +189,68 @@ export const useComments = () => {
     deleteComment,
   };
 };
+
+  const updateComment = useCallback(
+    async (commentId: string, content: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (!content.trim()) {
+          setError("El comentario no puede estar vacío");
+          setLoading(false);
+          return null;
+        }
+
+        if (content.trim().length < 3) {
+          setError("El comentario debe tener al menos 3 caracteres");
+          setLoading(false);
+          return null;
+        }
+
+        if (content.length > 500) {
+          setError("El comentario es demasiado largo (máximo 500 caracteres)");
+          setLoading(false);
+          return null;
+        }
+
+        const response = await commentsAPI.update(commentId, content);
+
+        if (response.data.success) {
+          const updatedComment: Comment = response.data.data;
+          // Actualizar el comentario en la lista
+          setComments(
+            comments.map((c) =>
+              c.id === commentId ? updatedComment : c
+            )
+          );
+          return updatedComment;
+        } else {
+          setError(response.data.error || "Error al actualizar comentario");
+          return null;
+        }
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.error ||
+          err.message ||
+          "Error al actualizar comentario";
+        setError(errorMessage);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [comments]
+  );
+
+  return {
+    comments,
+    loading,
+    error,
+    pagination,
+    fetchCommentsByCategory,
+    fetchCommentsByMatch,
+    createComment,
+    updateComment,
+    deleteComment,
+  };

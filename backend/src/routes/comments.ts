@@ -15,9 +15,19 @@ const commentsPostLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// 🔒 Rate limit para PATCH de comentarios (10 por 15 minutos)
+const commentsPatchLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Has editado demasiados comentarios. Espera 15 minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 /**
  * Rutas de comentarios
  * POST   /api/comments                      - Crear comentario
+ * PATCH  /api/comments/:commentId           - Editar comentario (NEW)
  * DELETE /api/comments/:commentId           - Eliminar comentario
  * GET    /api/comments/category/:categoryId - Obtener comentarios por categoría
  * GET    /api/comments/match/:matchId       - Obtener comentarios por partido
@@ -29,6 +39,13 @@ router.post(
   "/",
   commentsPostLimiter,
   commentController.createComment.bind(commentController)
+);
+
+// Editar comentario (NEW)
+router.patch(
+  "/:commentId",
+  commentsPatchLimiter,
+  commentController.updateComment.bind(commentController)
 );
 
 // Eliminar comentario

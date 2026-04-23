@@ -28,6 +28,7 @@ export default function CommentsPage() {
     pagination,
     fetchCommentsByCategory,
     createComment,
+    updateComment,
     deleteComment,
   } = useComments();
 
@@ -74,10 +75,17 @@ export default function CommentsPage() {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleUpdateComment = async (commentId: string, content: string) => {
+    const result = await updateComment(commentId, content);
+    return result !== null;
+  };
+
+  const handleDeleteComment = async (commentId: string): Promise<boolean> => {
     if (confirm("¿Estás seguro de que deseas eliminar este comentario?")) {
-      await deleteComment(commentId);
+      const result = await deleteComment(commentId);
+      return result;
     }
+    return false;
   };
 
   const handleLoadMore = () => {
@@ -188,6 +196,7 @@ export default function CommentsPage() {
           <CommentsList
             comments={comments}
             loading={commentsLoading}
+            onUpdateComment={handleUpdateComment}
             onDeleteComment={handleDeleteComment}
           />
         </div>

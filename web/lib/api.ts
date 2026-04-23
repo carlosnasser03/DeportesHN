@@ -66,6 +66,8 @@ export const commentsAPI = {
       content,
       ...(matchId && { matchId }),
     }),
+  update: (commentId: string, content: string) =>
+    api.patch(`/comments/${commentId}`, { content }),
   delete: (commentId: string) => api.delete(`/comments/${commentId}`),
   getStats: (categoryId?: string) =>
     api.get(`/comments/stats${categoryId ? `?categoryId=${categoryId}` : ""}`),

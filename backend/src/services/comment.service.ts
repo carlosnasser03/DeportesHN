@@ -317,3 +317,67 @@ export class CommentService {
 }
 
 export default new CommentService();
+
+  /**
+   * Actualizar comentario existente
+   */
+  async updateComment(commentId: string, content: string) {
+    // Validar que el comentario exista
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new Error("Comentario no encontrado");
+    }
+
+    // Filtrar malas palabras
+    const filteredContent = this.filterProfanity(content);
+
+    if (!filteredContent.trim()) {
+      throw new Error("El comentario está vacío o contiene solo palabras censuradas");
+    }
+
+    // Actualizar en BD (updatedAt se actualiza automáticamente)
+    const updatedComment = await prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        content: filteredContent,
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            label: true,
+          },
+        },
+        match: {
+          select: {
+            id: true,
+            homeTeam: {
+              select: {
+                organization: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+            awayTeam: {
+              select: {
+                organization: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+            date: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return updatedComment;
+  }

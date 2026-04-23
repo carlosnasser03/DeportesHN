@@ -185,3 +185,54 @@ export class CommentController {
 }
 
 export default new CommentController();
+
+  /**
+   * Editar comentario existente
+   * PATCH /api/comments/:commentId
+   * Body: { content: string }
+   */
+  async updateComment(req: Request, res: Response) {
+    try {
+      const { commentId } = req.params;
+      const { content } = req.body;
+
+      // 🔒 Validar campos requeridos
+      const schema = {
+        content: { type: "string", required: true, minLength: 3, maxLength: 500 },
+      };
+
+      const validation = validationService.validateObject(
+        { content },
+        schema
+      );
+
+      if (!validation.valid) {
+        return res.status(400).json({
+          success: false,
+          error: "Validación fallida",
+          details: validation.errors,
+        });
+      }
+
+      // 🔒 Sanitizar contenido
+      const sanitizedContent = validationService.sanitizeString(content);
+
+      const comment = await commentService.updateComment(
+        commentId,
+        sanitizedContent
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Comentario actualizado exitosamente",
+        data: comment,
+      });
+    } catch (error: any) {
+      console.error("Error al actualizar comentario:", error);
+      const isDev = process.env.NODE_ENV === 'development';
+      return res.status(500).json({
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
+      });
+    }
+  }

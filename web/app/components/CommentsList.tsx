@@ -1,23 +1,12 @@
 "use client";
 
-// Helper para tiempo relativo
-const timeAgo = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (seconds < 60) return "hace unos segundos";
-  if (seconds < 3600) return `hace ${Math.floor(seconds / 60)} minutos`;
-  if (seconds < 86400) return `hace ${Math.floor(seconds / 3600)} horas`;
-  if (seconds < 604800) return `hace ${Math.floor(seconds / 86400)} días`;
-
-  return date.toLocaleDateString("es-ES");
-};
+import { CommentItem } from "./CommentItem";
 
 interface Comment {
   id: string;
   content: string;
   createdAt: string;
+  updatedAt: string;
   match?: {
     id: string;
     homeTeam: {
@@ -38,12 +27,14 @@ interface Comment {
 interface CommentsListProps {
   comments: Comment[];
   loading: boolean;
-  onDeleteComment?: (commentId: string) => Promise<void>;
+  onUpdateComment?: (commentId: string, content: string) => Promise<void>;
+  onDeleteComment?: (commentId: string) => Promise<boolean>;
 }
 
 export function CommentsList({
   comments,
   loading,
+  onUpdateComment,
   onDeleteComment,
 }: CommentsListProps) {
   if (loading) {
@@ -72,14 +63,11 @@ export function CommentsList({
   return (
     <div className="space-y-4">
       {comments.map((comment) => (
-        <div
-          key={comment.id}
-          className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-        >
+        <div key={comment.id} className="border border-gray-200 rounded-lg overflow-hidden">
           {/* Partido (si existe) */}
           {comment.match && (
-            <div className="mb-2 pb-2 border-b border-gray-100">
-              <p className="text-xs text-gray-500">
+            <div className="bg-gray-50 p-3 border-b border-gray-200">
+              <p className="text-xs text-gray-600">
                 <span className="font-semibold">
                   {comment.match.homeTeam.organization.name}
                 </span>
@@ -88,28 +76,33 @@ export function CommentsList({
                   {comment.match.awayTeam.organization.name}
                 </span>
                 {" • "}
-                <span>{new Date(comment.match.date).toLocaleDateString("es-ES")}</span>
+                <span>{new Date(comment.match.date).toLocaleDateString("es-HN")}</span>
               </p>
             </div>
           )}
 
-          {/* Contenido */}
-          <p className="text-gray-800 leading-relaxed">{comment.content}</p>
-
-          {/* Footer */}
-          <div className="mt-3 flex justify-between items-center">
-            <p className="text-xs text-gray-400">
-              {timeAgo(comment.createdAt)}
-            </p>
-
-            {onDeleteComment && (
-              <button
-                onClick={() => onDeleteComment(comment.id)}
-                className="text-xs text-red-500 hover:text-red-700 transition-colors"
-              >
-                Eliminar
-              </button>
-            )}
+          {/* Comentario */}
+          <div className="p-4">
+            <CommentItem
+              id={comment.id}
+              content={comment.content}
+              createdAt={comment.createdAt}
+              updatedAt={comment.updatedAt}
+              onUpdate={
+                onUpdateComment ||
+                (async () => {
+                  console.log("Update handler not provided");
+                })
+              }
+              onDelete={
+                onDeleteComment ||
+                (async () => {
+                  console.log("Delete handler not provided");
+                  return false;
+                })
+              }
+              isLoading={loading}
+            />
           </div>
         </div>
       ))}
