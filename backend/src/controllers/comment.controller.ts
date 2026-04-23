@@ -236,3 +236,68 @@ export default new CommentController();
       });
     }
   }
+
+  /**
+   * Aprobar o rechazar comentario (admin)
+   * PUT /api/comments/:commentId/approval
+   * Body: { isApproved: boolean }
+   */
+  async updateApprovalStatus(req: Request, res: Response) {
+    try {
+      const { commentId } = req.params;
+      const { isApproved } = req.body;
+
+      // 🔒 Validar campos
+      if (typeof isApproved !== "boolean") {
+        return res.status(400).json({
+          success: false,
+          error: "isApproved debe ser un booleano",
+        });
+      }
+
+      const comment = await commentService.updateApprovalStatus(
+        commentId,
+        isApproved
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: isApproved
+          ? "Comentario aprobado"
+          : "Comentario rechazado",
+        data: comment,
+      });
+    } catch (error: any) {
+      console.error("Error al actualizar estado de aprobación:", error);
+      const isDev = process.env.NODE_ENV === 'development';
+      return res.status(500).json({
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
+      });
+    }
+  }
+
+  /**
+   * Obtener comentarios pendientes de aprobación (admin)
+   * GET /api/comments/moderation/pending
+   */
+  async getPendingComments(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      const result = await commentService.getPendingComments(page, Math.min(limit, 50));
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error: any) {
+      console.error("Error al obtener comentarios pendientes:", error);
+      const isDev = process.env.NODE_ENV === 'development';
+      return res.status(500).json({
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
+      });
+    }
+  }

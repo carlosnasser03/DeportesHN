@@ -26,12 +26,14 @@ const commentsPatchLimiter = rateLimit({
 
 /**
  * Rutas de comentarios
- * POST   /api/comments                      - Crear comentario
- * PATCH  /api/comments/:commentId           - Editar comentario (NEW)
- * DELETE /api/comments/:commentId           - Eliminar comentario
- * GET    /api/comments/category/:categoryId - Obtener comentarios por categoría
- * GET    /api/comments/match/:matchId       - Obtener comentarios por partido
- * GET    /api/comments/stats                - Obtener estadísticas
+ * POST   /api/comments                          - Crear comentario
+ * PATCH  /api/comments/:commentId               - Editar comentario
+ * DELETE /api/comments/:commentId               - Eliminar comentario
+ * PUT    /api/comments/:commentId/approval      - Aprobar/Rechazar (admin)
+ * GET    /api/comments/moderation/pending       - Comentarios pendientes (admin)
+ * GET    /api/comments/category/:categoryId     - Obtener por categoría
+ * GET    /api/comments/match/:matchId           - Obtener por partido
+ * GET    /api/comments/stats                    - Obtener estadísticas (admin)
  */
 
 // Crear comentario (con rate limit estricto)
@@ -41,7 +43,7 @@ router.post(
   commentController.createComment.bind(commentController)
 );
 
-// Editar comentario (NEW)
+// Editar comentario
 router.patch(
   "/:commentId",
   commentsPatchLimiter,
@@ -52,6 +54,22 @@ router.patch(
 router.delete(
   "/:commentId",
   commentController.deleteComment.bind(commentController)
+);
+
+// Comentarios pendientes de aprobación (admin)
+router.get(
+  "/moderation/pending",
+  authMiddleware,
+  authzMiddleware(['admin']),
+  commentController.getPendingComments.bind(commentController)
+);
+
+// Aprobar/Rechazar comentario (admin)
+router.put(
+  "/:commentId/approval",
+  authMiddleware,
+  authzMiddleware(['admin']),
+  commentController.updateApprovalStatus.bind(commentController)
 );
 
 // Obtener comentarios por categoría
@@ -66,7 +84,7 @@ router.get(
   commentController.getCommentsByMatch.bind(commentController)
 );
 
-// Estadísticas (admin) — Protegido con JWT + Autorización
+// Estadísticas (admin)
 router.get(
   "/stats",
   authMiddleware,

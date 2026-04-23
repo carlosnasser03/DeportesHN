@@ -381,3 +381,121 @@ export default new CommentService();
 
     return updatedComment;
   }
+
+  /**
+   * Actualizar estado de aprobación de un comentario
+   */
+  async updateApprovalStatus(commentId: string, isApproved: boolean) {
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new Error("Comentario no encontrado");
+    }
+
+    const updatedComment = await prisma.comment.update({
+      where: { id: commentId },
+      data: { isApproved },
+      include: {
+        category: {
+          select: {
+            id: true,
+            label: true,
+          },
+        },
+        match: {
+          select: {
+            id: true,
+            homeTeam: {
+              select: {
+                organization: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+            awayTeam: {
+              select: {
+                organization: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return updatedComment;
+  }
+
+  /**
+   * Obtener comentarios pendientes de aprobación (paginado)
+   */
+  async getPendingComments(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+
+    const [comments, total] = await Promise.all([
+      prisma.comment.findMany({
+        where: { isApproved: false },
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          category: {
+            select: {
+              id: true,
+              label: true,
+            },
+          },
+          match: {
+            select: {
+              id: true,
+              homeTeam: {
+                select: {
+                  organization: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+              awayTeam: {
+                select: {
+                  organization: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+              date: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "asc", // Primero los más antiguos
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.comment.count({
+        where: { isApproved: false },
+      }),
+    ]);
+
+    return {
+      comments,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
