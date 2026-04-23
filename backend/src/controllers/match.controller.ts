@@ -30,10 +30,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en getAll:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al obtener partidos',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -51,10 +52,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en getById:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(404).json({
         success: false,
-        error: 'Partido no encontrado',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -87,10 +89,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en create:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al crear partido',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -117,10 +120,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en update:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al actualizar partido',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -148,10 +152,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en finish:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al finalizar partido',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -186,10 +191,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en updateStats:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al actualizar estadísticas',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -208,10 +214,11 @@ export class MatchController {
       });
     } catch (error) {
       console.error('Error en delete:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al eliminar partido',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }

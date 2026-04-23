@@ -22,10 +22,11 @@ export class StandingsController {
       });
     } catch (error) {
       console.error('Error en getStandings:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al obtener tabla de liga',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -46,10 +47,11 @@ export class StandingsController {
       });
     } catch (error) {
       console.error('Error en getScorers:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al obtener goleadores',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }

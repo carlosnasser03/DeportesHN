@@ -1,7 +1,17 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import commentController from "../controllers/comment.controller";
 
 const router = Router();
+
+// 🔒 Rate limit específico para POST de comentarios (5 por 15 minutos)
+const commentsPostLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Has enviado demasiados comentarios. Espera 15 minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 /**
  * Rutas de comentarios
@@ -12,8 +22,12 @@ const router = Router();
  * GET    /api/comments/stats                - Obtener estadísticas
  */
 
-// Crear comentario
-router.post("/", commentController.createComment.bind(commentController));
+// Crear comentario (con rate limit estricto)
+router.post(
+  "/",
+  commentsPostLimiter,
+  commentController.createComment.bind(commentController)
+);
 
 // Eliminar comentario
 router.delete(

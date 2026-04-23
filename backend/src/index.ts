@@ -1,6 +1,8 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 
 // Cargar variables de entorno
@@ -13,14 +15,36 @@ const prisma = new PrismaClient();
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// ==========================================
+// 🔒 CAPA 1: Helmet — Headers HTTP seguros
+// ==========================================
+app.use(helmet());
+
+// ==========================================
+// 🔒 CAPA 2: Body size limit
+// ==========================================
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// ==========================================
+// 🔒 CAPA 3: Rate limit global (100 req/15min por IP)
+// ==========================================
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100,
+  message: { error: 'Demasiadas solicitudes. Intenta en 15 minutos.' },
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false,
+});
+
+// Middleware CORS
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Aplicar rate limit global a rutas API
+app.use('/api/', globalLimiter);
 
 // Middleware de logging simple
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -28,12 +52,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Health check endpoint
+// Health check endpoint (sin exponer NODE_ENV)
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
   });
 });
 

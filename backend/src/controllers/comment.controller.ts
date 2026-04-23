@@ -42,8 +42,10 @@ export class CommentController {
       });
     } catch (error: any) {
       console.error("Error al crear comentario:", error);
+      const isDev = process.env.NODE_ENV === 'development';
       return res.status(500).json({
-        error: error.message || "Error al crear comentario",
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -76,8 +78,10 @@ export class CommentController {
       });
     } catch (error: any) {
       console.error("Error al obtener comentarios:", error);
+      const isDev = process.env.NODE_ENV === 'development';
       return res.status(500).json({
-        error: error.message || "Error al obtener comentarios",
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -110,8 +114,10 @@ export class CommentController {
       });
     } catch (error: any) {
       console.error("Error al obtener comentarios:", error);
+      const isDev = process.env.NODE_ENV === 'development';
       return res.status(500).json({
-        error: error.message || "Error al obtener comentarios",
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -138,8 +144,10 @@ export class CommentController {
       });
     } catch (error: any) {
       console.error("Error al eliminar comentario:", error);
+      const isDev = process.env.NODE_ENV === 'development';
       return res.status(500).json({
-        error: error.message || "Error al eliminar comentario",
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -162,8 +170,10 @@ export class CommentController {
       });
     } catch (error: any) {
       console.error("Error al obtener estadísticas:", error);
+      const isDev = process.env.NODE_ENV === 'development';
       return res.status(500).json({
-        error: error.message || "Error al obtener estadísticas",
+        error: "Error interno del servidor",
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }

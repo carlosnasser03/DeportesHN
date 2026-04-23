@@ -26,10 +26,11 @@ export class TeamController {
       });
     } catch (error) {
       console.error('Error en getAll:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al obtener equipos',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -47,10 +48,11 @@ export class TeamController {
       });
     } catch (error) {
       console.error('Error en getById:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(404).json({
         success: false,
-        error: 'Equipo no encontrado',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -83,10 +85,11 @@ export class TeamController {
       });
     } catch (error) {
       console.error('Error en create:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al crear equipo',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -112,10 +115,11 @@ export class TeamController {
       });
     } catch (error) {
       console.error('Error en update:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al actualizar equipo',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
@@ -134,10 +138,11 @@ export class TeamController {
       });
     } catch (error) {
       console.error('Error en delete:', error);
+      const isDev = process.env.NODE_ENV === 'development';
       res.status(500).json({
         success: false,
-        error: 'Error al eliminar equipo',
-        message: (error as Error).message,
+        error: 'Error interno del servidor',
+        ...(isDev && { message: (error as Error).message }),
       });
     }
   }
