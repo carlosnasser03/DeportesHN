@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import commentService from "../services/comment.service";
+import validationService from "../services/validation.service";
 
 export class CommentController {
   /**
@@ -10,29 +11,33 @@ export class CommentController {
     try {
       const { categoryId, matchId, content } = req.body;
 
-      // Validaciones básicas
-      if (!categoryId) {
+      // 🔒 Validar campos requeridos
+      const schema = {
+        categoryId: { type: "uuid", required: true },
+        content: { type: "string", required: true, minLength: 3, maxLength: 500 },
+        matchId: { type: "uuid", required: false },
+      };
+
+      const validation = validationService.validateObject(
+        { categoryId, matchId, content },
+        schema
+      );
+
+      if (!validation.valid) {
         return res.status(400).json({
-          error: "categoryId es requerido",
+          success: false,
+          error: "Validación fallida",
+          details: validation.errors,
         });
       }
 
-      if (!content || typeof content !== "string") {
-        return res.status(400).json({
-          error: "content es requerido y debe ser string",
-        });
-      }
-
-      if (content.trim().length < 3) {
-        return res.status(400).json({
-          error: "El comentario debe tener al menos 3 caracteres",
-        });
-      }
+      // 🔒 Sanitizar contenido (remover caracteres peligrosos)
+      const sanitizedContent = validationService.sanitizeString(content);
 
       const comment = await commentService.createComment({
         categoryId,
         matchId: matchId || undefined,
-        content,
+        content: sanitizedContent,
       });
 
       return res.status(201).json({

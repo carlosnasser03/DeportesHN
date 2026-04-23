@@ -37,10 +37,28 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Middleware CORS
+// ==========================================
+// 🔒 CORS Avanzado — Whitelist + Headers
+// ==========================================
+const allowedOrigins = [
+  'http://localhost:3000', // Frontend dev
+  'http://localhost:3001', // Frontend alt port
+  process.env.FRONTEND_URL, // Frontend producción
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Permitir requests sin origin (mobile apps, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS no permitido'), false);
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400, // 24 horas
 }));
 
 // Aplicar rate limit global a rutas API

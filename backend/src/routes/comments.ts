@@ -1,6 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { authzMiddleware } from "../middleware/authz.middleware";
 import commentController from "../controllers/comment.controller";
 
 const router = Router();
@@ -48,10 +49,11 @@ router.get(
   commentController.getCommentsByMatch.bind(commentController)
 );
 
-// Estadísticas (admin) — Protegido con JWT
+// Estadísticas (admin) — Protegido con JWT + Autorización
 router.get(
   "/stats",
   authMiddleware,
+  authzMiddleware(['admin']),
   commentController.getStats.bind(commentController)
 );
 
