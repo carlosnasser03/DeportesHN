@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { categoriesAPI } from "@/lib/api";
 import { useComments } from "@/app/hooks/useComments";
+import { useNotifications } from "@/app/hooks/useNotifications";
 import { CommentForm } from "@/app/components/CommentForm";
 import { CommentsList } from "@/app/components/CommentsList";
+import { NotificationCenter } from "@/app/components/NotificationCenter";
 
 interface Category {
   id: string;
@@ -31,6 +33,12 @@ export default function CommentsPage() {
     updateComment,
     deleteComment,
   } = useComments();
+
+  const {
+    notifications,
+    isConnected,
+    subscribeToCategory,
+  } = useNotifications();
 
   // Cargar categoría
   useEffect(() => {
@@ -58,6 +66,13 @@ export default function CommentsPage() {
       fetchCommentsByCategory(categoryId);
     }
   }, [categoryId, fetchCommentsByCategory]);
+
+  // Suscribirse a WebSocket de la categoría
+  useEffect(() => {
+    if (categoryId && isConnected) {
+      subscribeToCategory(categoryId);
+    }
+  }, [categoryId, isConnected, subscribeToCategory]);
 
   const handleCreateComment = async (data: {
     categoryId: string;
@@ -141,6 +156,9 @@ export default function CommentsPage() {
           <p className="text-blue-100 mt-1">Gestión de torneos de fútbol infantil</p>
         </div>
       </header>
+
+      {/* Notification Center */}
+      <NotificationCenter notifications={notifications} />
 
       <main className="max-w-2xl mx-auto py-8 px-4">
         {/* Breadcrumb */}

@@ -3,10 +3,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useDashboardStats } from "../hooks/useDashboardStats";
 import { useModeration } from "../hooks/useModeration";
+import { useNotifications } from "../hooks/useNotifications";
 import { StatsCard } from "../components/dashboard/StatsCard";
 import { CategoryChart } from "../components/dashboard/CategoryChart";
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { ModerationPanel } from "../components/dashboard/ModerationPanel";
+import { NotificationCenter } from "../components/NotificationCenter";
 
 export default function DashboardPage() {
   const { getValidToken, loading: authLoading, error: authError } = useAuth();
@@ -14,6 +16,7 @@ export default function DashboardPage() {
     useDashboardStats();
   const { comments: pendingComments, loading: modLoading, fetchPendingComments, approveComment, rejectComment } =
     useModeration();
+  const { notifications, isConnected } = useNotifications();
   const [lastUpdated, setLastUpdated] = useState(null);
   const [authorized, setAuthorized] = useState(false);
   const [token, setToken] = useState(null);
@@ -33,6 +36,16 @@ export default function DashboardPage() {
     };
     loadStats();
   }, [getValidToken, fetchStats, fetchPendingComments]);
+
+  // Suscribirse a notificaciones de admin (aprobaciones/rechazos)
+  // Esto permite que el panel de moderación se actualice en tiempo real
+  useEffect(() => {
+    // Este efecto simplemente mantiene la conexión WebSocket activa
+    // Las notificaciones se mostrarán automáticamente en el NotificationCenter
+    if (isConnected) {
+      console.log("✅ Dashboard conectado a WebSocket");
+    }
+  }, [isConnected]);
 
   if (authLoading || statsLoading) {
     return (
@@ -82,6 +95,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Notification Center */}
+      <NotificationCenter notifications={notifications} />
+
       <header className="bg-blue-600 text-white py-6 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between">

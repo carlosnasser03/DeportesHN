@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import commentService from "../services/comment.service";
 import validationService from "../services/validation.service";
+import notificationService from "../services/notification.service";
 
 export class CommentController {
   /**
@@ -39,6 +40,9 @@ export class CommentController {
         matchId: matchId || undefined,
         content: sanitizedContent,
       });
+
+      // 🔔 Emitir evento WebSocket
+      notificationService.notifyCommentCreated(comment);
 
       return res.status(201).json({
         success: true,
@@ -182,9 +186,6 @@ export class CommentController {
       });
     }
   }
-}
-
-export default new CommentController();
 
   /**
    * Editar comentario existente
@@ -260,6 +261,13 @@ export default new CommentController();
         isApproved
       );
 
+      // 🔔 Emitir evento WebSocket
+      if (isApproved) {
+        notificationService.notifyCommentApproved(commentId, comment.categoryId);
+      } else {
+        notificationService.notifyCommentRejected(commentId, comment.categoryId);
+      }
+
       return res.status(200).json({
         success: true,
         message: isApproved
@@ -301,3 +309,6 @@ export default new CommentController();
       });
     }
   }
+}
+
+export default new CommentController();

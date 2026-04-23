@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -14,6 +16,28 @@ const prisma = new PrismaClient();
 // Inicializar Express
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
+
+// ==========================================
+// 🔌 WebSocket con Socket.io
+// ==========================================
+const httpServer = createServer(app);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      process.env.FRONTEND_URL || '',
+    ].filter(Boolean),
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
+// Hacer io disponible globalmente para controllers
+declare global {
+  var socketIO: SocketIOServer;
+}
+globalThis.socketIO = io;
 
 // ==========================================
 // 🔒 CAPA 1: Helmet — Headers HTTP seguros
@@ -114,6 +138,28 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
+// ==========================================
+// WebSocket eventos básicos
+// ==========================================
+io.on('connection', (socket) => {
+  console.log(`📱 Cliente conectado: ${socket.id}`);
+
+  // El cliente puede suscribirse a un "room" por categoría
+  socket.on('subscribe_category', (categoryId: string) => {
+    socket.join(`category_${categoryId}`);
+    console.log(`✅ Cliente ${socket.id} suscrito a categoría ${categoryId}`);
+  });
+
+  socket.on('unsubscribe_category', (categoryId: string) => {
+    socket.leave(`category_${categoryId}`);
+    console.log(`❌ Cliente ${socket.id} desuscrito de categoría ${categoryId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`🔌 Cliente desconectado: ${socket.id}`);
+  });
+});
+
 // Iniciar servidor
 const startServer = async () => {
   try {
@@ -121,9 +167,10 @@ const startServer = async () => {
     await prisma.$connect();
     console.log('✅ Conectado a base de datos');
 
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
       console.log(`📝 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`🔌 WebSocket disponible en ws://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('❌ Error al iniciar servidor:', error);
@@ -135,9 +182,10 @@ const startServer = async () => {
 process.on('SIGINT', async () => {
   console.log('\n⛔ Apagando servidor...');
   await prisma.$disconnect();
+  io.close();
   process.exit(0);
 });
 
 startServer();
 
-export { app, prisma };
+export { app, prisma, io };

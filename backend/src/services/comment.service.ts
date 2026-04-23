@@ -314,9 +314,6 @@ export class CommentService {
       })),
     };
   }
-}
-
-export default new CommentService();
 
   /**
    * Actualizar comentario existente
@@ -499,3 +496,6 @@ export default new CommentService();
       },
     };
   }
+}
+
+export default new CommentService();
