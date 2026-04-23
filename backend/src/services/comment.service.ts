@@ -283,14 +283,35 @@ export class CommentService {
     const approved = await prisma.comment.count({
       where: { ...where, isApproved: true },
     });
-    const pending = await prisma.comment.count({
+    const rejected = await prisma.comment.count({
       where: { ...where, isApproved: false },
     });
 
+    // Obtener estadísticas por categoría
+    const statsByCategory = await prisma.category.findMany({
+      select: {
+        id: true,
+        label: true,
+        _count: {
+          select: {
+            comments: true,
+          },
+        },
+      },
+      orderBy: {
+        label: "asc",
+      },
+    });
+
     return {
-      total,
-      approved,
-      pending,
+      totalComments: total,
+      approvedComments: approved,
+      rejectedComments: rejected,
+      statsByCategory: statsByCategory.map((cat) => ({
+        categoryId: cat.id,
+        categoryName: cat.label,
+        count: cat._count.comments,
+      })),
     };
   }
 }
